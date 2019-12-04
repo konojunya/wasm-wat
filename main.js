@@ -66,15 +66,37 @@
 // })
 
 // table.wasm
-async function fetchAndInstantiate() {
-  const res = await fetch("table.wasm");
+// async function fetchAndInstantiate() {
+//   const res = await fetch("table.wasm");
+//   const buffer = await res.arrayBuffer();
+//   const obj = await WebAssembly.instantiate(buffer)
+//   return obj;
+// }
+//
+// fetchAndInstantiate().then(obj => {
+//   console.log(obj.instance.exports.callByIndex(0));
+//   console.log(obj.instance.exports.callByIndex(1));
+//   console.log(obj.instance.exports.callByIndex(2));
+// })
+
+// shared$0.wasm
+const importObj = {
+  js: {
+    memory: new WebAssembly.Memory({initial: 1}),
+    table: new WebAssembly.Table({initial: 1, element: "anyfunc"})
+  }
+}
+async function fetchAndInstantiate(filename, importObj) {
+  const res = await fetch(filename);
   const buffer = await res.arrayBuffer();
-  const obj = await WebAssembly.instantiate(buffer)
+  const obj = await WebAssembly.instantiate(buffer, importObj)
   return obj;
 }
 
-fetchAndInstantiate().then(obj => {
-  console.log(obj.instance.exports.callByIndex(0));
-  console.log(obj.instance.exports.callByIndex(1));
-  console.log(obj.instance.exports.callByIndex(2));
+Promise.all([
+  fetchAndInstantiate("shared0.wasm", importObj),
+  fetchAndInstantiate("shared1.wasm", importObj),
+]).then(results => {
+  // console.log(obj.instance.exports.callByIndex(0));
+  console.log(results[1].instance.exports.doIt())
 })
